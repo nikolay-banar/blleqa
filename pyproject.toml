@@ -10,7 +10,9 @@ requires-python = ">=3.11,<3.12"
 dependencies = [
     "deepeval (>=3.8.8,<4.0.0)",
     "openrouter (>=0.7.11,<0.8.0)",
-    "pytest (>=9.0.2,<10.0.0)"
+    "pytest (>=9.0.2,<10.0.0)",
+    "ragas (>=0.4.3,<0.5.0)",
+    "datasets (>=2.21.0,<3.0.0)"
 ]
 
 
