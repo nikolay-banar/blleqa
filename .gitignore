@@ -1,0 +1,15 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Test/cache artifacts
+.pytest_cache/
+.deepeval/
+
+# Virtual environments
+.venv/
+venv/
+
+# Local test outputs
+outputs/test_results/
