@@ -1,0 +1,4 @@
+{
+    "name":  "mistralai/mistral-large-2512",
+    "providers": ["mistral"]
+}

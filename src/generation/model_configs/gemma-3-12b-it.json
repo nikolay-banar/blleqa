@@ -1,0 +1,4 @@
+{
+    "name":  "google/gemma-3-12b-it",
+    "providers": ["deepinfra/bf16", "crusoe/bf16"]
+}

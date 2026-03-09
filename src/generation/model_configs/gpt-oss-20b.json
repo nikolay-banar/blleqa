@@ -1,0 +1,4 @@
+{
+    "name":  "openai/gpt-oss-20b",
+    "providers": ["deepinfra/bf16"]
+}

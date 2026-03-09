@@ -1,0 +1,4 @@
+{
+    "name":  "qwen/qwen3-235b-a22b-2507",
+    "providers": ["wandb/bf16", "crusoe/bf16"]
+}

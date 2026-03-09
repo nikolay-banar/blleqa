@@ -1,0 +1,4 @@
+{
+    "name":  "z-ai/glm-4.7-flash",
+    "providers": ["deepinfra/bf16", "novita/bf16"]
+}

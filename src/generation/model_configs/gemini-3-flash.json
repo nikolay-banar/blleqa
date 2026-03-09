@@ -1,0 +1,4 @@
+{
+    "name":  "google/gemini-3-flash-preview",
+    "providers": ["google-vertex"]
+}

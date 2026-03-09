@@ -1,0 +1,4 @@
+{
+    "name":  "mistralai/ministral-14b-2512",
+    "providers": ["mistral"]
+}
