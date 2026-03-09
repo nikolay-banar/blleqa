@@ -85,6 +85,7 @@ class CorrectnessResult(TypedDict):
 class JudgeConfig(TypedDict, total=False):
     model: str
     api_key: str
+    base_url: str
     providers: list[str]
 
 
@@ -105,6 +106,10 @@ def _create_correctness_metric(
             "OpenRouter API key is required. Set judge_config['api_key'] or OPENROUTER_API_KEY."
         )
     judge_kwargs["api_key"] = api_key
+
+    base_url = config.get("base_url")
+    if base_url is not None and str(base_url).strip():
+        judge_kwargs["base_url"] = str(base_url).strip()
 
     if provider_only is not None:
         provider_payload: dict[str, object] = {"only": provider_only}
@@ -185,6 +190,7 @@ def deepeval_correctness(
             input=input_row["query"],
             actual_output=input_row["prediction"],
             expected_output=input_row["ref"],
+            name=input_row["id"]
         )
         for input_row in input_rows
     ]
@@ -216,7 +222,7 @@ def deepeval_correctness(
         metrics=[correctness_metric],
         async_config=AsyncConfig(
             run_async=True,
-            max_concurrent=5,
+            max_concurrent=10,
             throttle_value=3,
         ),
         error_config=ErrorConfig(
@@ -229,25 +235,31 @@ def deepeval_correctness(
     if not isinstance(test_results, list):
         test_results = []
 
+    print("LEN", len(test_results))
+
+
     scores: dict[str, float] = {}
     failed_eval_ids: list[str] = []
     failure_reasons: dict[str, str] = {}
     evaluation_reasons: dict[str, str] = {}
-    for index, input_row in enumerate(input_rows):
-        case_id = input_row["id"]
-        if index < len(test_results):
-            eval_reason = _extract_evaluation_reason(test_results[index])
-            if eval_reason:
-                evaluation_reasons[case_id] = eval_reason
-            score = _extract_score(test_results[index])
-            if score is not None:
-                scores[case_id] = _scale_to_metric_range(score)
-            else:
-                failed_eval_ids.append(case_id)
-                failure_reasons[case_id] = _extract_failure_reason(test_results[index])
+
+    for ts in test_results:
+        case_id = getattr(ts, "name")
+
+        metrics_data = getattr(ts, "metrics_data")[0]
+
+        eval_reason = getattr(metrics_data, "reason")
+        if eval_reason:
+            evaluation_reasons[case_id] = eval_reason
+        
+        score =  getattr(metrics_data, "score")
+
+        if score is not None:
+            scores[case_id] = _scale_to_metric_range(float(score))
         else:
             failed_eval_ids.append(case_id)
-            failure_reasons[case_id] = "missing_test_result"
+            failure_reasons[case_id] =  getattr(metrics_data, "error")            
+
     return {
         "scores": scores,
         "failed_eval_ids": failed_eval_ids,
