@@ -220,15 +220,32 @@ async def agenerate(
     client = _get_client(model_config)
     extra_body = _build_extra_body(model_config)
 
-    async def _run_one(item: GenerationInput) -> GenerationResult:
-        async with semaphore:
-            return await _generate_one(
-                client=client,
-                model_config=model_config,
-                gen_input=item,
-                extra_body=extra_body,
-            )
+    max_retries = max(3, int(os.getenv("OPENROUTER_MAX_RETRIES", "3") or "0"))
+    base_delay = float(os.getenv("OPENROUTER_RETRY_BASE_DELAY", "1.0") or "1.0")
+    max_delay = float(os.getenv("OPENROUTER_RETRY_MAX_DELAY", "10.0") or "10.0")
 
+    async def _run_one(item: GenerationInput) -> GenerationResult:
+        last_exc: Exception | None = None
+        for attempt in range(max_retries + 1):
+            try:
+                async with semaphore:
+                    return await _generate_one(
+                        client=client,
+                        model_config=model_config,
+                        gen_input=item,
+                        extra_body=extra_body,
+                    )
+            except Exception as exc:
+                last_exc = exc
+                if attempt >= max_retries:
+                    break
+
+                delay = min(max_delay, base_delay * (2 ** attempt))
+                await asyncio.sleep(delay)
+
+        assert last_exc is not None
+        raise last_exc
+    
     results: list[GenerationResult] = []
     errors: list[GenerationResult] = []
 
