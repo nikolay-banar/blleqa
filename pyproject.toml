@@ -16,10 +16,12 @@ dependencies = [
     "scikit-learn (>=1.8.0,<2.0.0)",
     "scipy (>=1.17.1,<2.0.0)",
     "tqdm (>=4.67.3,<5.0.0)",
+    "transformers (>=5.3.0,<6.0.0)",
 ]
 
 [project.scripts]
 bbleqa-generate = "generation.cli.generate:main"
+bbleqa-build-context = "generation.cli.build_context:main"
 
 [tool.poetry]
 packages = [{ include = "generation", from = "src" }]

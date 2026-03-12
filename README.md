@@ -2,6 +2,61 @@
 
 Benchmarking utilities for legal QA evaluation.
 
+## Build Context
+
+`generation.cli.build_context` converts retrieved article ids into per-question context JSON and retrieval metrics.
+
+### CLI
+
+Preferred (installed entrypoint):
+
+```bash
+poetry run bbleqa-build-context \
+  --retrieved-file data/retrieved/voyage3_test_nl.json \
+  --lang nl \
+  --split test \
+  --output-dir data/context \
+  --overwrite
+```
+
+Module fallback:
+
+```bash
+PYTHONPATH=src python3 -m generation.cli.build_context \
+  --retrieved-file data/retrieved/voyage3_test_nl.json \
+  --lang nl \
+  --split test \
+  --output-dir data/context \
+  --overwrite
+```
+
+Required flag:
+
+- `--retrieved-file`: JSON keyed by question id, where each value is a retrieved article-id list
+  (for example `{ "696": ["3604", "15393", ...] }`)
+
+Useful optional flags:
+
+- `--output-dir` (default: `data/context`)
+- `--dataset-id` (default: `clips/bLLeQa_aligned`)
+- `--split` (default: `test`)
+- `--lang` (`nl` or `fr`, default: `nl`) used to compute retrieval metrics and gold-injection IDs
+- `--overwrite`
+
+Outputs:
+
+- `data/context/<retrieved-file-stem>_metrics.json`
+- `data/context/nl/<retrieved-file-stem>_only_gold.json`
+- `data/context/nl/<retrieved-file-stem>_top_100.json`
+- `data/context/nl/<retrieved-file-stem>_top_100_plus_gold.json`
+- `data/context/fr/<retrieved-file-stem>_only_gold.json`
+- `data/context/fr/<retrieved-file-stem>_top_100.json`
+- `data/context/fr/<retrieved-file-stem>_top_100_plus_gold.json`
+
+Each context output is keyed by question id and contains:
+
+- `[{"id": "<article_id>", "text": "<article_text>"}, ...]`
+
 ## Generate
 
 `generation.cli.generate` runs answer generation for the bLLeQa split using a context JSON keyed by question id.
@@ -18,7 +73,7 @@ Preferred (installed entrypoint):
 
 ```bash
 poetry run bbleqa-generate \
-  --context-file data/context/context_nl.json \
+  --context-file data/context/nl/voyage3_test_nl_top_100.json \
   --model ministral-8b \
   --lang nl
 ```
@@ -26,8 +81,8 @@ poetry run bbleqa-generate \
 Module fallback:
 
 ```bash
-PYTHONPATH=src python -m generation.cli.generate \
-  --context-file data/context/context_nl.json \
+PYTHONPATH=src python3 -m generation.cli.generate \
+  --context-file data/context/nl/voyage3_test_nl_top_100.json \
   --model ministral-8b \
   --lang nl
 ```
@@ -50,7 +105,7 @@ Useful optional flags:
 
 Output is written to:
 
-- `outputs/<context-file-stem>/<model>.json`
+- `outputs/<lang>/<context-file-stem>/<model>.json`
 
 If that file already exists, completed ids in `answers` are skipped on rerun.
 
@@ -101,7 +156,7 @@ Per-candidate metrics include:
 Run from project root:
 
 ```bash
-PYTHONPATH=src python -m generation.judge_selector \
+PYTHONPATH=src python3 -m generation.judge_selector \
   --csv-path data/annotations/data-annotations-fr.json \
   --candidates gemma-3-27b-it \
   --output-file outputs/judge_selection/judge_selection.json
