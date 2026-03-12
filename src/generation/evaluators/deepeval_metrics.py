@@ -155,28 +155,6 @@ def _extract_score(test_result: object) -> float | None:
     return float(score) if score is not None else None
 
 
-def _extract_failure_reason(test_result: object) -> str:
-    for attr in ("error", "failure_reason", "reason"):
-        value = getattr(test_result, attr, None)
-        if value:
-            return str(value)
-    return "missing_score"
-
-
-def _extract_evaluation_reason(test_result: object) -> str | None:
-    metrics_data = getattr(test_result, "metrics_data", None)
-    if isinstance(metrics_data, list) and metrics_data:
-        first = metrics_data[0]
-        reason = getattr(first, "reason", None)
-        if reason:
-            return str(reason)
-
-    reason = getattr(test_result, "reason", None)
-    if reason:
-        return str(reason)
-    return None
-
-
 def deepeval_correctness(
     input_rows: list[CorrectnessInput],
     judge_config: JudgeConfig | None = None,
