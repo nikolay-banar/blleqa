@@ -199,6 +199,9 @@ async def _generate_one(
 
     cleaned = _normalize_chunks(_parse_content(content))
 
+    if not cleaned:
+        raise ValueError(f"The final output is empty for {gen_input['id']}")
+
     return {
         "id": gen_input["id"],
         "raw": raw_response,
