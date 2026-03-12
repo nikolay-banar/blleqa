@@ -117,7 +117,7 @@ async def _amain() -> None:
             "First input: id=%s, system_prompt=%r, user_prompt=%r",
             first_input["id"],
             first_input["system_prompt"][:200],
-            first_input["user_prompt"][:300],
+            first_input["user_prompt"][:3000],
         )
 
     if previous_output is not None:
