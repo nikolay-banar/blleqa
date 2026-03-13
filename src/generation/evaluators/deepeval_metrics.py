@@ -1,5 +1,6 @@
 import textwrap
 import os
+import logging
 from typing import TypedDict
 
 from deepeval import evaluate
@@ -9,6 +10,8 @@ from deepeval.metrics.g_eval import GEvalTemplate
 from deepeval.models.llms.openrouter_model import OpenRouterModel
 from deepeval.test_case import LLMTestCase, LLMTestCaseParams
 from deepeval.metrics.g_eval import Rubric
+
+logger = logging.getLogger(__name__)
 
 class CustomGEvalTemplate(GEvalTemplate):
     @staticmethod
@@ -213,7 +216,7 @@ def deepeval_correctness(
     if not isinstance(test_results, list):
         test_results = []
 
-    print("LEN", len(test_results))
+    logger.info("Received %s test results from deepeval.", len(test_results))
 
 
     scores: dict[str, float] = {}
@@ -221,22 +224,43 @@ def deepeval_correctness(
     failure_reasons: dict[str, str] = {}
     evaluation_reasons: dict[str, str] = {}
 
-    for ts in test_results:
-        case_id = getattr(ts, "name")
+    for index, ts in enumerate(test_results, start=1):
+        raw_case_id = getattr(ts, "name", None)
+        case_id = str(raw_case_id).strip() if raw_case_id is not None else ""
+        if not case_id:
+            case_id = f"row_{index}"
 
-        metrics_data = getattr(ts, "metrics_data")[0]
-
-        eval_reason = getattr(metrics_data, "reason")
-        if eval_reason:
-            evaluation_reasons[case_id] = eval_reason
-        
-        score =  getattr(metrics_data, "score")
-
-        if score is not None:
-            scores[case_id] = _scale_to_metric_range(float(score))
+        raw_metrics_data = getattr(ts, "metrics_data", None)
+        if isinstance(raw_metrics_data, list):
+            metrics_data = raw_metrics_data[0] if raw_metrics_data else None
         else:
+            metrics_data = raw_metrics_data
+
+        if metrics_data is None:
             failed_eval_ids.append(case_id)
-            failure_reasons[case_id] =  getattr(metrics_data, "error")            
+            failure_reasons[case_id] = "missing_metrics_data"
+            continue
+
+        eval_reason = getattr(metrics_data, "reason", None)
+        if eval_reason:
+            evaluation_reasons[case_id] = str(eval_reason)
+
+        score = getattr(metrics_data, "score", None)
+        if score is not None:
+            try:
+                scores[case_id] = _scale_to_metric_range(float(score))
+                continue
+            except (TypeError, ValueError):
+                pass
+
+        failed_eval_ids.append(case_id)
+        metric_error = getattr(metrics_data, "error", None)
+        if metric_error:
+            failure_reasons[case_id] = str(metric_error)
+        elif score is not None:
+            failure_reasons[case_id] = f"invalid_score:{score}"
+        else:
+            failure_reasons[case_id] = "missing_score"
 
     return {
         "scores": scores,
