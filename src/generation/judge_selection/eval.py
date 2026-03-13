@@ -192,8 +192,6 @@ def _compute_judge_evaluation(
             )
 
     return {
-        "name": candidate_run["name"],
-        "judge_config": candidate_run["judge_config"],
         "coverage": coverage,
         "mean_score": mean_score,
         "score_std": score_std,
