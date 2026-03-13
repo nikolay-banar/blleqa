@@ -114,11 +114,14 @@ def _create_correctness_metric(
     if base_url is not None and str(base_url).strip():
         judge_kwargs["base_url"] = str(base_url).strip()
 
+    provider_payload: dict[str, object] =  {"data_collection": "deny"}
+        
     if provider_only is not None:
-        provider_payload: dict[str, object] = {"only": provider_only}
-        judge_kwargs["generation_kwargs"] = {
-            "extra_body": {"provider": provider_payload}
-        }
+        provider_payload["only"] = provider_only
+
+    judge_kwargs["generation_kwargs"] = {
+        "extra_body": {"provider": provider_payload}
+    }
 
     geval_metric = GEval(
          name="Correctness",
