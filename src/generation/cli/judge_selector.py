@@ -134,9 +134,16 @@ def _load_annotations(
                     raise ValueError(
                         f"Invalid gold score at row {index} in {path}: {raw_gold_score}"
                     ) from exc
+            else:
+                warnings.warn(
+                    f"Row {index} (case id: {case_id}) in {path} is missing '{gold_score_col}' and will be skipped.",
+                    stacklevel=2,
+                )
+                continue
+
         if not prediction:
             warnings.warn(
-                f"Row {index} in {path} is missing '{prediction_col}' and will be skipped.",
+                f"Row {index} (case id: {case_id}) in {path} is missing '{prediction_col}' and will be skipped.",
                 stacklevel=2,
             )
             continue
@@ -263,6 +270,7 @@ def run_cli(args: argparse.Namespace):
         ref_col=DEFAULT_REF_COL,
         gold_score_col=DEFAULT_GRADE_COL,
     )
+    logger.info("Loaded %s input rows from %s.", len(input_rows), args.csv_path)
     gold_scores_by_id: dict[str, float] = {
         str(row["id"]): float(row["gold_score"])
         for row in input_rows
