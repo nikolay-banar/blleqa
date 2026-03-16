@@ -1,0 +1,4 @@
+{
+    "name":  "z-ai/glm-5",
+    "providers": ["novita/fp8", "parasail/fp8", "atlas-cloud/fp8"]
+}

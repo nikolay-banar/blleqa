@@ -1,0 +1,4 @@
+{
+    "name":  "qwen/qwen3.5-122b-a10b",
+    "providers": ["novita/bf16"]
+}

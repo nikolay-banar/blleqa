@@ -1,0 +1,4 @@
+{
+    "name":  "moonshotai/kimi-k2-0905",
+    "providers": ["novita/fp8", "atlas-cloud/fp8"]
+}

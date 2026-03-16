@@ -1,0 +1,4 @@
+{
+    "name":  "qwen/qwen3.5-9b",
+    "providers": ["together"]
+}

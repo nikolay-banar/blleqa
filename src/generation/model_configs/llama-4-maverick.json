@@ -1,0 +1,4 @@
+{
+    "name":  "meta-llama/llama-4-maverick",
+    "providers": ["novita/fp8", "together/fp8", "parasail/fp8"]
+}

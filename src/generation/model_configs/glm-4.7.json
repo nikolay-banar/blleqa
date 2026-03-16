@@ -1,0 +1,4 @@
+{
+    "name":  "z-ai/glm-4.7",
+    "providers": ["io-net/bf16"]
+}

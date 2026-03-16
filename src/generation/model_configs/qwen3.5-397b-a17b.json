@@ -1,0 +1,4 @@
+{
+    "name":  "qwen/qwen3.5-397b-a17b",
+    "providers": ["atlas-cloud/fp8", "parasail/fp8"]
+}

@@ -1,0 +1,4 @@
+{
+    "name":  "moonshotai/kimi-k2-thinking",
+    "providers": ["novita/bf16"]
+}

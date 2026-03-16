@@ -1,0 +1,4 @@
+{
+    "name":  "moonshotai/kimi-k2.5",
+    "providers": ["atlas-cloud/int4", "parasail/int4", "moonshotai/int4"]
+}
