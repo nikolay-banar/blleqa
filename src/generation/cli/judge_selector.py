@@ -304,7 +304,7 @@ def run_cli(args: argparse.Namespace):
             if row["id"] not in processed_ids
         ]
         # missing_experiments = missing_experiments[:5]
-        conducted_new_experiments = bool(missing_experiments)
+        should_write_output = bool(missing_experiments) or model_metrics is None
         logger.info("Experiments left: %s", len(missing_experiments))
 
         if not missing_experiments:
@@ -345,7 +345,7 @@ def run_cli(args: argparse.Namespace):
 
         metrics_by_judge[candidate["name"]] = model_metrics
 
-        if not conducted_new_experiments:
+        if not should_write_output:
             continue
 
         failed_id_set = set(final_run["failed_eval_ids"])
@@ -382,17 +382,24 @@ def run_cli(args: argparse.Namespace):
         if isinstance(metrics, dict):
             row.update(
                 {
-                    "coverage": metrics.get("coverage"),
+                    # "coverage": metrics.get("coverage"),
                     "mean_score": metrics.get("mean_score"),
-                    "score_std": metrics.get("score_std"),
-                    "failure_rate": metrics.get("failure_rate"),
-                    "num_scored": metrics.get("num_scored"),
+                    # "score_std": metrics.get("score_std"),
+                    # "failure_rate": metrics.get("failure_rate"),
+                    # "num_scored": metrics.get("num_scored"),
                     "num_failed": metrics.get("num_failed"),
-                    "num_compared_with_gold": metrics.get("num_compared_with_gold"),
-                    "pearson_correlation": metrics.get("pearson_correlation"),
-                    "spearman_correlation": metrics.get("spearman_correlation"),
+                    # "num_compared_with_gold": metrics.get("num_compared_with_gold"),
+                    "mean_shift": metrics.get("mean_true_score") -  metrics.get("mean_score"),
+                    "pearson": metrics.get("pearson_correlation"),
+                    "spearman": metrics.get("spearman_correlation"),
                     "mae": metrics.get("mae"),
                     "f1_macro": metrics.get("f1_macro"),
+                    "pearson_binary": metrics.get("pearson_correlation_binary"),
+                    "spearman_binary": metrics.get("spearman_correlation_binary"),
+                    "accuracy_binary": metrics.get("accuracy_binary"),
+                    "f1_binary": metrics.get("f1_binary"),
+                    "mean_shift_binary": metrics.get("mean_true_binary") - metrics.get("mean_pred_binary"),
+                    "mean_pred_binary": metrics.get("mean_pred_binary"),
                 }
             )
         else:
@@ -401,9 +408,9 @@ def run_cli(args: argparse.Namespace):
 
     if metrics_rows:
         metrics_df = pd.DataFrame(metrics_rows)
-        if "pearson_correlation" in metrics_df.columns:
+        if "pearson" in metrics_df.columns:
             metrics_df = metrics_df.sort_values(
-                by="pearson_correlation",
+                by="pearson",
                 ascending=False,
                 na_position="last",
             )

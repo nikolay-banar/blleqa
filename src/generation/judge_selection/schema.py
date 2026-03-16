@@ -19,10 +19,17 @@ class JudgeEvaluation(TypedDict):
     num_scored: int
     num_failed: int
     num_compared_with_gold: int
+    mean_true_score: float | None
     pearson_correlation: float | None
     spearman_correlation: float | None
     mae: float | None
     f1_macro: float | None
+    pearson_correlation_binary: float | None
+    spearman_correlation_binary: float | None
+    accuracy_binary: float | None
+    f1_binary: float | None
+    mean_true_binary: float | None
+    mean_pred_binary: float | None
     failed_eval_ids: list[str]
     failure_reasons: dict[str, str]
 

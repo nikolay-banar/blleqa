@@ -3,7 +3,7 @@ import statistics
 from typing import Hashable
 
 from scipy.stats import pearsonr, spearmanr
-from sklearn.metrics import f1_score
+from sklearn.metrics import accuracy_score, f1_score
 
 
 def _clamp(value: float, low: float, high: float) -> float:
@@ -46,6 +46,26 @@ def mean_absolute_error(y_true: list[float], y_pred: list[float]) -> float:
     return statistics.fmean(abs(true_value - pred_value) for true_value, pred_value in zip(y_true, y_pred))
 
 
+def to_binary_labels(values: list[float], *, threshold: float = 3.0) -> list[int]:
+    return [0 if float(value) < threshold else 1 for value in values]
+
+
+def accuracy(y_true: list[Hashable], y_pred: list[Hashable]) -> float:
+    if len(y_true) != len(y_pred):
+        raise ValueError("y_true and y_pred must have the same length")
+    if not y_true:
+        raise ValueError("y_true and y_pred must be non-empty")
+    return float(accuracy_score(y_true, y_pred))
+
+
+def f1_binary_score(y_true: list[int], y_pred: list[int]) -> float:
+    if len(y_true) != len(y_pred):
+        raise ValueError("y_true and y_pred must have the same length")
+    if not y_true:
+        raise ValueError("y_true and y_pred must be non-empty")
+    return float(f1_score(y_true, y_pred, average="binary", zero_division=0))
+
+
 def f1_macro_score(
     y_true: list[Hashable],
     y_pred: list[Hashable],
@@ -80,5 +100,8 @@ __all__ = [
     "pearson_correlation",
     "spearman_correlation",
     "mean_absolute_error",
+    "to_binary_labels",
+    "accuracy",
+    "f1_binary_score",
     "f1_macro_score",
 ]

@@ -1,5 +1,12 @@
 from generation.evaluators.deepeval_metrics import CorrectnessInput, CorrectnessResult
-from generation.judge_selection.metrics import f1_macro_score, mean_absolute_error, pearson_correlation, spearman_correlation
+from generation.judge_selection.metrics import (
+    accuracy,
+    f1_macro_score,
+    mean_absolute_error,
+    pearson_correlation,
+    spearman_correlation,
+    to_binary_labels,
+)
 from generation.judge_selection.schema import CandidateCorrectnessRun, JudgeCandidate, JudgeEvaluation, JudgeConfig
 from typing import Callable
 import statistics
@@ -169,10 +176,17 @@ def _compute_judge_evaluation(
         score_std = None
 
     num_compared_with_gold = 0
+    mean_true_score_value: float | None = None
     pearson_value: float | None = None
     spearman_value: float | None = None
     mae_value: float | None = None
     f1_macro_value: float | None = None
+    pearson_binary_value: float | None = None
+    spearman_binary_value: float | None = None
+    accuracy_binary_value: float | None = None
+    f1_binary_value: float | None = None
+    mean_true_binary_value: float | None = None
+    mean_pred_binary_value: float | None = None
     if gold_scores_by_id:
         common_ids = [
             case_id for case_id in expected_ids
@@ -182,6 +196,7 @@ def _compute_judge_evaluation(
         if common_ids:
             y_true = [float(gold_scores_by_id[case_id]) for case_id in common_ids]
             y_pred = [scores[case_id] for case_id in common_ids]
+            mean_true_score_value = statistics.fmean(y_true)
             pearson_value = pearson_correlation(y_true, y_pred)
             spearman_value = spearman_correlation(y_true, y_pred)
             mae_value = mean_absolute_error(y_true, y_pred)
@@ -191,6 +206,15 @@ def _compute_judge_evaluation(
                 score_range=score_range,
             )
 
+            y_true_binary = to_binary_labels(y_true, threshold=3.0)
+            y_pred_binary = to_binary_labels(y_pred, threshold=3.0)
+            pearson_binary_value = pearson_correlation(y_true_binary, y_pred_binary)
+            spearman_binary_value = spearman_correlation(y_true_binary, y_pred_binary)
+            accuracy_binary_value = accuracy(y_true_binary, y_pred_binary)
+            f1_binary_value = f1_macro_score(y_true_binary, y_pred_binary)
+            mean_true_binary_value = statistics.fmean(float(label) for label in y_true_binary)
+            mean_pred_binary_value = statistics.fmean(float(label) for label in y_pred_binary)
+
     return {
         "coverage": coverage,
         "mean_score": mean_score,
@@ -199,10 +223,17 @@ def _compute_judge_evaluation(
         "num_scored": num_scored,
         "num_failed": num_failed,
         "num_compared_with_gold": num_compared_with_gold,
+        "mean_true_score": mean_true_score_value,
         "pearson_correlation": pearson_value,
         "spearman_correlation": spearman_value,
         "mae": mae_value,
         "f1_macro": f1_macro_value,
+        "pearson_correlation_binary": pearson_binary_value,
+        "spearman_correlation_binary": spearman_binary_value,
+        "accuracy_binary": accuracy_binary_value,
+        "f1_binary": f1_binary_value,
+        "mean_true_binary": mean_true_binary_value,
+        "mean_pred_binary": mean_pred_binary_value,
         "failed_eval_ids": failed_eval_ids,
         "failure_reasons": failure_reasons,
     }
