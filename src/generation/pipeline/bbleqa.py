@@ -84,3 +84,33 @@ def load_blleqa_test_inputs(
         )
 
     return inputs
+
+
+def _to_id_list(value: object) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return [str(item).strip() for item in value if str(item).strip()]
+    if isinstance(value, str):
+        stripped = value.strip()
+        if not stripped:
+            return []
+        return [item for item in stripped.split() if item]
+    return [str(value).strip()] if str(value).strip() else []
+
+
+def _load_gold_ids_by_qid(
+    *,
+    dataset_id: str,
+    split: str,
+    lang: str,
+) -> dict[str, list[str]]:
+
+    dataset = load_dataset(dataset_id, split)[lang]
+    gold_by_qid: dict[str, list[str]] = {}
+    for row in dataset:
+        qid = str(row.get("id") or "").strip()
+        if not qid:
+            continue
+        gold_by_qid[qid] = _to_id_list(row.get("article_ids"))
+    return gold_by_qid
