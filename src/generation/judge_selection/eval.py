@@ -1,11 +1,10 @@
 from generation.evaluators.deepeval_metrics import CorrectnessInput, CorrectnessResult
 from generation.judge_selection.metrics import (
-    accuracy,
-    f1_macro_score,
+    f1_macro_score_with_per_label,
+    group_labels,
     mean_absolute_error,
     pearson_correlation,
     spearman_correlation,
-    to_binary_labels,
 )
 from generation.judge_selection.schema import CandidateCorrectnessRun, JudgeCandidate, JudgeEvaluation, JudgeConfig
 from typing import Callable
@@ -155,85 +154,84 @@ def _compute_judge_evaluation(
     score_range: tuple[float, float],
     gold_scores_by_id: dict[str, float] | None,
 ) -> JudgeEvaluation:
+    outputs = {}
     expected_ids = [row["id"] for row in input_rows]
     scores = candidate_run["scores"]
-    failed_eval_ids = candidate_run["failed_eval_ids"]
-    failure_reasons = candidate_run["failure_reasons"]
+    outputs["failed_eval_ids"] = candidate_run["failed_eval_ids"]
+    outputs["failure_reasons"] = candidate_run["failure_reasons"]
 
     score_values = list(scores.values())
     total = len(expected_ids)
-    num_scored = len(score_values)
-    num_failed = len(set(failed_eval_ids))
-    coverage = num_scored / total if total else 0.0
-    failure_rate = num_failed / total if total else 0.0
+    outputs["num_scored"] = len(score_values)
+    outputs["num_failed"] = len(set(outputs["failed_eval_ids"]))
 
-    mean_score = statistics.fmean(score_values) if score_values else None
+    outputs["coverage"] = outputs["num_scored"] / total if total else 0.0
+    outputs["failure_rate"] = outputs["num_failed"] / total if total else 0.0
+
+    outputs["mean_score"] = statistics.fmean(score_values) if score_values else None
     if len(score_values) > 1:
-        score_std = statistics.pstdev(score_values)
+        outputs["score_std"] = statistics.pstdev(score_values)
     elif len(score_values) == 1:
-        score_std = 0.0
+        outputs["score_std"]  = 0.0
     else:
-        score_std = None
+        outputs["score_std"]  = None
 
-    num_compared_with_gold = 0
-    mean_true_score_value: float | None = None
-    pearson_value: float | None = None
-    spearman_value: float | None = None
-    mae_value: float | None = None
-    f1_macro_value: float | None = None
-    pearson_binary_value: float | None = None
-    spearman_binary_value: float | None = None
-    accuracy_binary_value: float | None = None
-    f1_binary_value: float | None = None
-    mean_true_binary_value: float | None = None
-    mean_pred_binary_value: float | None = None
+    outputs["num_compared_with_gold"] = 0
     if gold_scores_by_id:
         common_ids = [
             case_id for case_id in expected_ids
             if case_id in scores and case_id in gold_scores_by_id
         ]
-        num_compared_with_gold = len(common_ids)
+        outputs["num_compared_with_gold"] = len(common_ids)
         if common_ids:
             y_true = [float(gold_scores_by_id[case_id]) for case_id in common_ids]
             y_pred = [scores[case_id] for case_id in common_ids]
-            mean_true_score_value = statistics.fmean(y_true)
-            pearson_value = pearson_correlation(y_true, y_pred)
-            spearman_value = spearman_correlation(y_true, y_pred)
-            mae_value = mean_absolute_error(y_true, y_pred)
-            f1_macro_value = f1_macro_score(
+            outputs["mean_true_score"] = statistics.fmean(y_true)
+            low_label = int(score_range[0])
+            high_label = int(score_range[1])
+            pred_values_by_true_label: dict[str, list[float]] = {}
+            for true_value, pred_value in zip(y_true, y_pred):
+                true_label = int(round(true_value))
+                true_label = max(low_label, min(high_label, true_label))
+                key = str(true_label)
+                pred_values_by_true_label.setdefault(key, []).append(float(pred_value))
+            outputs["mean_pred_by_true_label"] = {
+                label: statistics.fmean(values)
+                for label, values in pred_values_by_true_label.items()
+            }
+            outputs["num_by_true_label"] = {
+                label: len(values)
+                for label, values in pred_values_by_true_label.items()
+            }
+            outputs["pearson"] = pearson_correlation(y_true, y_pred)
+            outputs["spearman"]  = spearman_correlation(y_true, y_pred)
+            outputs["mae"] = mean_absolute_error(y_true, y_pred)
+            outputs["f1_macro"], outputs["f1_macro_per_label"] = f1_macro_score_with_per_label(
                 y_true,
                 y_pred,
                 score_range=score_range,
             )
 
-            y_true_binary = to_binary_labels(y_true, threshold=3.0)
-            y_pred_binary = to_binary_labels(y_pred, threshold=3.0)
-            pearson_binary_value = pearson_correlation(y_true_binary, y_pred_binary)
-            spearman_binary_value = spearman_correlation(y_true_binary, y_pred_binary)
-            accuracy_binary_value = accuracy(y_true_binary, y_pred_binary)
-            f1_binary_value = f1_macro_score(y_true_binary, y_pred_binary)
-            mean_true_binary_value = statistics.fmean(float(label) for label in y_true_binary)
-            mean_pred_binary_value = statistics.fmean(float(label) for label in y_pred_binary)
 
-    return {
-        "coverage": coverage,
-        "mean_score": mean_score,
-        "score_std": score_std,
-        "failure_rate": failure_rate,
-        "num_scored": num_scored,
-        "num_failed": num_failed,
-        "num_compared_with_gold": num_compared_with_gold,
-        "mean_true_score": mean_true_score_value,
-        "pearson_correlation": pearson_value,
-        "spearman_correlation": spearman_value,
-        "mae": mae_value,
-        "f1_macro": f1_macro_value,
-        "pearson_correlation_binary": pearson_binary_value,
-        "spearman_correlation_binary": spearman_binary_value,
-        "accuracy_binary": accuracy_binary_value,
-        "f1_binary": f1_binary_value,
-        "mean_true_binary": mean_true_binary_value,
-        "mean_pred_binary": mean_pred_binary_value,
-        "failed_eval_ids": failed_eval_ids,
-        "failure_reasons": failure_reasons,
-    }
+            outputs["f1_macro_t_3"], outputs["f1_macro_per_label_t_3"] = f1_macro_score_with_per_label(
+                group_labels(y_true, groups={"1-2": (1, 2), "3-5": (3, 4, 5)}),
+                group_labels(y_pred, groups={"1-2": (1, 2), "3-5": (3, 4, 5)}),
+            )
+
+            outputs["f1_macro_t_4"], outputs["f1_macro_per_label_t_4"] = f1_macro_score_with_per_label(
+                group_labels(y_true, groups={"1-3": (1, 2, 3), "4-5": (4, 5)}),
+                group_labels(y_pred, groups={"1-3": (1, 2, 3), "4-5": (4, 5)}),
+            )
+
+            outputs["f1_macro_group_1_2_vs_3_vs_4_5"], outputs[
+                "f1_macro_per_label_group_1_2_vs_3_vs_4_5"
+            ] = (
+                f1_macro_score_with_per_label(
+                    group_labels(y_true, groups={"1-2": (1, 2), "3": (3,), "4-5": (4, 5)}),
+                    group_labels(y_pred, groups={"1-2": (1, 2), "3": (3,), "4-5": (4, 5)}),
+                )
+            )
+
+
+
+    return outputs

@@ -16,7 +16,7 @@ from generation.judge_selection.eval import (
     _compute_judge_evaluation,
     _normalize_candidate_correctness_run)
 
-from generation.judge_selection.schema import JudgeCandidate, CandidateCorrectnessRun
+from generation.judge_selection.schema import JudgeCandidate
 
 logger = logging.getLogger(__name__)
 
@@ -380,26 +380,33 @@ def run_cli(args: argparse.Namespace):
     for judge_name, metrics in sorted(metrics_by_judge.items()):
         row: dict[str, object] = {"judge": judge_name}
         if isinstance(metrics, dict):
+            mean_true_score = metrics.get("mean_true_score")
+            mean_score = metrics.get("mean_score")
+            mean_shift = (
+                float(mean_true_score) - float(mean_score)
+                if isinstance(mean_true_score, (int, float))
+                and isinstance(mean_score, (int, float))
+                else None
+            )
             row.update(
                 {
                     # "coverage": metrics.get("coverage"),
-                    "mean_score": metrics.get("mean_score"),
+                    "mean_score": mean_score,
                     # "score_std": metrics.get("score_std"),
                     # "failure_rate": metrics.get("failure_rate"),
                     # "num_scored": metrics.get("num_scored"),
                     "num_failed": metrics.get("num_failed"),
                     # "num_compared_with_gold": metrics.get("num_compared_with_gold"),
-                    "mean_shift": metrics.get("mean_true_score") -  metrics.get("mean_score"),
-                    "pearson": metrics.get("pearson_correlation"),
-                    "spearman": metrics.get("spearman_correlation"),
+                    "mean_shift": mean_shift,
+                    "pearson": metrics.get("pearson"),
+                    "spearman": metrics.get("spearman"),
                     "mae": metrics.get("mae"),
                     "f1_macro": metrics.get("f1_macro"),
-                    "pearson_binary": metrics.get("pearson_correlation_binary"),
-                    "spearman_binary": metrics.get("spearman_correlation_binary"),
-                    "accuracy_binary": metrics.get("accuracy_binary"),
-                    "f1_binary": metrics.get("f1_binary"),
-                    "mean_shift_binary": metrics.get("mean_true_binary") - metrics.get("mean_pred_binary"),
-                    "mean_pred_binary": metrics.get("mean_pred_binary"),
+                    "f1_macro_t_3": metrics.get("f1_macro_t_3"),
+                    "f1_macro_t_4": metrics.get("f1_macro_t_4"),
+                    "f1_macro_group_1_2_vs_3_vs_4_5": metrics.get(
+                        "f1_macro_group_1_2_vs_3_vs_4_5"
+                    ),
                 }
             )
         else:
