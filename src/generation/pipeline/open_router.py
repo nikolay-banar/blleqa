@@ -18,6 +18,7 @@ class ModelConfig(TypedDict, total=False):
     base_url: str
     api_key: str
     providers: list[str]
+    max_completion_tokens: int
 
 
 
@@ -173,13 +174,13 @@ async def _generate_one(
     extra_body: dict[str, object],
 ) -> GenerationResult:
 
-    response = await client.chat.completions.create(
-        model=model_config["name"],
-        messages=[
+    request_kwargs: dict[str, Any] = {
+        "model":model_config["name"],
+        "messages": [
             {"role": "system", "content": gen_input["system_prompt"]},
             {"role": "user", "content": gen_input["user_prompt"]},
         ],
-        response_format={
+        "response_format": {
             "type": "json_schema",
             "json_schema": {
                 "name": "qa_chunks",
@@ -187,8 +188,14 @@ async def _generate_one(
                 "schema": QA_SCHEMA,
             },
         },
-        extra_body=extra_body,
-    )
+        "extra_body": extra_body
+        }
+    
+    max_completion_tokens = model_config.get("max_completion_tokens")
+    if max_completion_tokens is not None:
+        request_kwargs["max_completion_tokens"] = int(max_completion_tokens)
+
+    response = await client.chat.completions.create(**request_kwargs)
 
     raw_response = _response_to_dict(response)
     message = response.choices[0].message
