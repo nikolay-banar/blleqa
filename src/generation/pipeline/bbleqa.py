@@ -114,3 +114,72 @@ def _load_gold_ids_by_qid(
             continue
         gold_by_qid[qid] = _to_id_list(row.get("article_ids"))
     return gold_by_qid
+
+
+def _to_text(value: object, *, lang: str | None = None) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        return value.strip()
+    if isinstance(value, list):
+        parts = [_to_text(item, lang=lang) for item in value]
+        return "\n".join(part for part in parts if part).strip()
+    if isinstance(value, dict):
+        if lang and lang in value:
+            lang_text = _to_text(value.get(lang), lang=lang)
+            if lang_text:
+                return lang_text
+        for key in ("text", "answer", "content", "value"):
+            if key in value:
+                nested_text = _to_text(value.get(key), lang=lang)
+                if nested_text:
+                    return nested_text
+        parts = [_to_text(item, lang=lang) for item in value.values()]
+        return "\n".join(part for part in parts if part).strip()
+    return str(value).strip()
+
+
+def _extract_query_text(row: dict[str, object], *, lang: str) -> str:
+    for key in ("question", "query", "questions", "prompt"):
+        if key in row:
+            text = _to_text(row.get(key), lang=lang)
+            if text:
+                return text
+    return ""
+
+
+def _extract_reference_text(row: dict[str, object], *, lang: str) -> str:
+    for key in (
+        "answer",
+        "answers",
+        "reference",
+        "reference_answer",
+        "gold_answer",
+        "gold_answers",
+        "ref",
+        "response",
+    ):
+        if key in row:
+            text = _to_text(row.get(key), lang=lang)
+            if text:
+                return text
+    return ""
+
+
+def _load_gold_query_ref_by_qid(
+    *,
+    dataset_id: str,
+    split: str,
+    lang: str,
+) -> tuple[dict[str, str], dict[str, str]]:
+
+    dataset = load_dataset(dataset_id, split)[lang]
+    query_by_qid: dict[str, str] = {}
+    ref_by_qid: dict[str, str] = {}
+    for row in dataset:
+        qid = str(row.get("id") or "").strip()
+        if not qid:
+            continue
+        query_by_qid[qid] = _extract_query_text(row, lang=lang)
+        ref_by_qid[qid] = _extract_reference_text(row, lang=lang)
+    return query_by_qid, ref_by_qid
