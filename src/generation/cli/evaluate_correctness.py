@@ -16,6 +16,7 @@ from generation.cli.evaluate_refusals import (
     _load_generation_answers,
     _load_refusal_flags_by_qid,
     _print_rows,
+    _refusal_case_label,
 )
 from generation.evaluators import deepeval_correctness
 from generation.pipeline.bbleqa import _load_gold_ids_by_qid, _load_gold_query_ref_by_qid
@@ -25,11 +26,11 @@ BINARY_THRESHOLD = 4.0
 CORRECTNESS_TABLE_COLUMNS = [
     "Model",
     "Setup",
-    "DeepEvalScoreMean",
-    "DeepEvalScoreMeanCorrected",
-    "DeepEvalBinAcc",
-    "DeepEvalBinAccCorrected",
-    "DeepEvalCov",
+    "Cov",
+    "ScoreMean",
+    "ScoreMeanCorrected",
+    "BinAcc",
+    "BinAccCorrected",
     "CorrectAnswers",
     "NonCorrect",
     "CorrectRefusals",
@@ -42,18 +43,6 @@ OUTCOME_KEYS = [
     "correct_refusals",
     "incorrect_refusals",
 ]
-
-
-def _refusal_case_label(*, expected_refusal: bool | None, predicted_refusal: bool | None) -> str | None:
-    if expected_refusal is None or predicted_refusal is None:
-        return None
-    if expected_refusal and predicted_refusal:
-        return "correct_refusal"
-    if expected_refusal and not predicted_refusal:
-        return "missed_refusal"
-    if not expected_refusal and predicted_refusal:
-        return "incorrect_refusal"
-    return "answer_expected_and_answered"
 
 
 def _build_deepeval_rows(
@@ -370,7 +359,7 @@ def _compute_deepeval_metrics(
         if deepeval_binary_labels_corrected
         else None
     )
-    deepeval_coverage = len(deepeval_scores) / total_rows if total_rows else 0.0
+    deepeval_coverage = len(deepeval_corrected_scores) / total_rows if total_rows else 0.0
     deepeval_outcome = _compute_outcome_breakdown(
         row_ids=row_ids,
         scores_by_id=raw_scores_by_id,
@@ -494,11 +483,11 @@ def _nan_correctness_row(model_name: str, setup_name: str) -> dict[str, object]:
     return {
         "Model": model_name,
         "Setup": setup_name,
-        "DeepEvalScoreMean": float("nan"),
-        "DeepEvalScoreMeanCorrected": float("nan"),
-        "DeepEvalBinAcc": float("nan"),
-        "DeepEvalBinAccCorrected": float("nan"),
-        "DeepEvalCov": float("nan"),
+        "ScoreMean": float("nan"),
+        "ScoreMeanCorrected": float("nan"),
+        "BinAcc": float("nan"),
+        "BinAccCorrected": float("nan"),
+        "Cov": float("nan"),
         "CorrectAnswers": float("nan"),
         "NonCorrect": float("nan"),
         "CorrectRefusals": float("nan"),
@@ -678,11 +667,11 @@ def main() -> None:
                 "DeepEval metrics: "
                 f"model={model_name} "
                 f"setup={setup_name} "
+                f"coverage={deepeval_coverage} "
                 f"score_mean={deepeval_score_mean} "
                 f"score_mean_corrected={deepeval_score_mean_corrected} "
                 f"binary_accuracy={deepeval_binary_accuracy} "
-                f"binary_accuracy_corrected={deepeval_binary_accuracy_corrected} "
-                f"coverage={deepeval_coverage}"
+                f"binary_accuracy_corrected={deepeval_binary_accuracy_corrected}"
             )
             if deepeval_outcome:
                 print(
@@ -721,11 +710,11 @@ def main() -> None:
                 {
                     "Model": model_name,
                     "Setup": setup_name,
-                    "DeepEvalScoreMean": deepeval_score_mean,
-                    "DeepEvalScoreMeanCorrected": deepeval_score_mean_corrected,
-                    "DeepEvalBinAcc": deepeval_binary_accuracy,
-                    "DeepEvalBinAccCorrected": deepeval_binary_accuracy_corrected,
-                    "DeepEvalCov": deepeval_coverage,
+                    "ScoreMean": deepeval_score_mean,
+                    "ScoreMeanCorrected": deepeval_score_mean_corrected,
+                    "BinAcc": deepeval_binary_accuracy,
+                    "BinAccCorrected": deepeval_binary_accuracy_corrected,
+                    "Cov": deepeval_coverage,
                     "CorrectAnswers": (
                         deepeval_corrected_outcome.get("fractions", {}).get("correct_answers")
                         if deepeval_corrected_outcome

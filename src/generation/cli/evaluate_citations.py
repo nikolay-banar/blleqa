@@ -200,6 +200,7 @@ def run_citation_and_refusal_evaluation(
     )
     return {
         "prediction_text_by_qid": prediction_text_by_qid,
+        "predicted_by_qid": predicted_by_qid,
         "predicted_row_count": len(predicted_by_qid),
         "citation_result": citation_result,
         "refusal_result": refusal_result,
