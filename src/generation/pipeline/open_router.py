@@ -69,11 +69,20 @@ def _extract_json_string(content: str) -> str:
     if not stripped:
         return '{"qa_chunks": []}'
 
-    for opener, closer in (("{", "}"), ("[", "]")):
-        start = stripped.find(opener)
-        end = stripped.rfind(closer)
-        if start != -1 and end != -1 and end >= start:
-            return stripped[start : end + 1]
+    object_start = stripped.find("{")
+    array_start = stripped.find("[")
+
+    starts = [idx for idx in (object_start, array_start) if idx != -1]
+    if not starts:
+        return stripped
+
+    start = min(starts)
+    opener = stripped[start]
+    closer = "}" if opener == "{" else "]"
+    end = stripped.rfind(closer)
+
+    if end != -1 and end >= start:
+        return stripped[start:end + 1]
 
     return stripped
 
@@ -86,10 +95,13 @@ def _parse_content(content: str) -> object:
 
 
 def _normalize_chunks(payload: object) -> list[QAChunk]:
-    if not isinstance(payload, dict):
-        raise ValueError("Expected the model response to be a JSON object.")
+    if isinstance(payload, dict):
+        raw_chunks = payload.get("qa_chunks")
+    elif isinstance(payload, list):
+        raw_chunks = payload
+    else:
+        raise ValueError("Expected the model response to be a JSON object or array.")
 
-    raw_chunks = payload.get("qa_chunks")
     if not isinstance(raw_chunks, list):
         raise ValueError("Expected the model response to include a qa_chunks list.")
 
@@ -196,7 +208,6 @@ async def _generate_one(
         request_kwargs["max_completion_tokens"] = int(max_completion_tokens)
 
     response = await client.chat.completions.create(**request_kwargs)
-
     raw_response = _response_to_dict(response)
     message = response.choices[0].message
     content = message.content
@@ -204,7 +215,8 @@ async def _generate_one(
         reasoning = getattr(message, "reasoning", None)
         content = str(reasoning).strip() if reasoning else '{"qa_chunks": []}'
 
-    cleaned = _normalize_chunks(_parse_content(content))
+    payload = _parse_content(content)
+    cleaned = _normalize_chunks(payload)
 
     if not cleaned:
         raise ValueError(f"The final output is empty for {gen_input['id']}")
@@ -247,6 +259,7 @@ async def agenerate(
                     )
             except Exception as exc:
                 last_exc = exc
+                print(f"id={item['id']} attempt={attempt+1}/{max_retries+1} failed: {exc!r}")
                 if attempt >= max_retries:
                     break
 
