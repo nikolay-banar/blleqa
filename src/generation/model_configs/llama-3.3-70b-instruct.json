@@ -1,4 +1,5 @@
 {
     "name":  "meta-llama/llama-3.3-70b-instruct",
-    "providers": ["novita/bf16", "crusoe/bf16", "sambanova/bf16"]
+    "providers": ["sambanova/bf16", "novita/bf16", "wandb/fp16", "crusoe/bf16"],
+    "max_completion_tokens": 15000
 }

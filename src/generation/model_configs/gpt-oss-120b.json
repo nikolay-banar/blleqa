@@ -1,4 +1,4 @@
 {
     "name":  "openai/gpt-oss-120b",
-    "providers": ["deepinfra/bf16", "crusoe/bf16"]
+    "providers": ["deepinfra/turbo", "deepinfra/bf16"]
 }

@@ -1,4 +1,4 @@
 {
     "name":  "meta-llama/llama-4-scout",
-    "providers": ["novita/bf16"]
+    "providers": ["deepinfra/fp8"]
 }

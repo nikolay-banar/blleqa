@@ -1,4 +1,4 @@
 {
     "name":  "deepseek/deepseek-v3.2",
-    "providers": ["atlas-cloud/fp8", "novita/fp8", "ionstream/fp8", "parasail/fp8"]
+    "providers": ["atlas-cloud/fp8", "ionstream/fp8", "novita/fp8", "ionstream/fp8", "parasail/fp8"]
 }
