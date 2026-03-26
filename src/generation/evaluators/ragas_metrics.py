@@ -68,7 +68,7 @@ def _build_faithfulness_scorer(judge_config: RagasJudgeConfig | None) -> Faithfu
     if providers:
         llm_kwargs["extra_body"] = {"provider": {"only": providers}}
 
-    llm = llm_factory(model, **llm_kwargs)
+    llm = llm_factory(model, max_tokens=10000, **llm_kwargs)
     return Faithfulness(llm=llm)
 
 def ragas_faithfulness(
