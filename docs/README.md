@@ -112,14 +112,14 @@ If that file already exists, completed ids in `answers` are skipped on rerun.
 
 ## Evaluate Faithfulness
 
-`generation.cli.evaluate_faitfulness` computes RAGAS faithfulness metrics from generation outputs.
+`generation.cli.evaluate_faithfulness` computes RAGAS faithfulness metrics from generation outputs.
 
 ### CLI
 
 Run from project root:
 
 ```bash
-PYTHONPATH=src python3 -m generation.cli.evaluate_faitfulness \
+PYTHONPATH=src python3 -m generation.cli.evaluate_faithfulness \
   --generation-dir outputs \
   --context-dir data/context \
   --output-dir outputs/results \
