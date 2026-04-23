@@ -20,5 +20,8 @@ outputs/gen
 outputs/judge_selection
 outputs/metrics
 outputs/results
+outputs/test_results/
+
+tests/test_judge_selector.py
 
 *.DS_Store
