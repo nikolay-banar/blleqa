@@ -60,7 +60,7 @@ def _build_ragas_rows(
     return rows
 
 
-def _build_faitfulness_by_id(
+def _build_faithfulness_by_id(
     *,
     row_ids: list[str],
     scores_by_id: dict[str, float],
@@ -100,7 +100,7 @@ def _build_faitfulness_by_id(
     return by_id
 
 
-def run_faitfulness_evaluation(
+def run_faithfulness_evaluation(
     *,
     query_by_qid: dict[str, str],
     prediction_text_by_qid: dict[str, str],
@@ -206,7 +206,7 @@ def run_faitfulness_evaluation(
         "failure_reasons": failure_reasons,
     }
     row_ids = [str(row["id"]) for row in ragas_rows]
-    result["by_id"] = _build_faitfulness_by_id(
+    result["by_id"] = _build_faithfulness_by_id(
         row_ids=row_ids,
         scores_by_id=scores_by_id,
         corrected_scores_by_id=corrected_scores_by_id,
@@ -507,7 +507,7 @@ def main() -> None:
             refusals_by_qid = _load_refusal_flags_by_qid(answers)
             print(f"Loaded {len(prediction_text_by_qid)} predicted rows from {generation_file}")
 
-            ragas_eval = run_faitfulness_evaluation(
+            ragas_eval = run_faithfulness_evaluation(
                 query_by_qid=query_by_qid,
                 prediction_text_by_qid=prediction_text_by_qid,
                 context_texts_by_qid=context_texts_by_qid,
@@ -534,7 +534,7 @@ def main() -> None:
                     "Cached metrics contained null values after evaluation; "
                     "retrying without cache."
                 )
-                ragas_eval = run_faitfulness_evaluation(
+                ragas_eval = run_faithfulness_evaluation(
                     query_by_qid=query_by_qid,
                     prediction_text_by_qid=prediction_text_by_qid,
                     context_texts_by_qid=context_texts_by_qid,
