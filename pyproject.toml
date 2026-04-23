@@ -1,5 +1,5 @@
 [project]
-name = "bbleqa"
+name = "blleqa"
 version = "0.1.0"
 description = "Benchmarlink LLMs for legal QA in Dutch and French"
 authors = [
@@ -20,8 +20,8 @@ dependencies = [
 ]
 
 [project.scripts]
-bbleqa-generate = "generation.cli.generate:main"
-bbleqa-build-context = "generation.cli.build_context:main"
+blleqa-generate = "generation.cli.generate:main"
+blleqa-build-context = "generation.cli.build_context:main"
 
 [tool.poetry]
 packages = [{ include = "generation", from = "src" }]

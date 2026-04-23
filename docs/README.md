@@ -1,4 +1,4 @@
-# bbleqa
+# blleqa
 
 Benchmarking utilities for legal QA evaluation.
 
@@ -11,7 +11,7 @@ Benchmarking utilities for legal QA evaluation.
 Preferred (installed entrypoint):
 
 ```bash
-poetry run bbleqa-build-context \
+poetry run blleqa-build-context \
   --retrieved-file data/retrieved/voyage3_test_nl.json \
   --lang nl \
   --split test \
@@ -73,7 +73,7 @@ Each context output is keyed by question id and contains:
 Preferred (installed entrypoint):
 
 ```bash
-poetry run bbleqa-generate \
+poetry run blleqa-generate \
   --context-file data/context/nl/voyage3_test_nl_top_100.json \
   --model ministral-8b \
   --lang nl
