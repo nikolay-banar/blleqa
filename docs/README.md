@@ -38,7 +38,7 @@ Required flag:
 Useful optional flags:
 
 - `--output-dir` (default: `data/context`)
-- `--dataset-id` (default: `clips/bLLeQa_aligned`)
+- `--dataset-id` (default: `clips/bLLeQA`)
 - `--split` (default: `test`)
 - `--lang` (`nl` or `fr`, default: `nl`) used to compute retrieval metrics and gold-injection IDs
 - `--overwrite`

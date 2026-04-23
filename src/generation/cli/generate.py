@@ -16,7 +16,7 @@ from generation.pipeline.open_router import (
     agenerate,
 )
 
-DEFAULT_DATASET_ID = "clips/bLLeQa_aligned"
+DEFAULT_DATASET_ID = "clips/bLLeQA"
 MODEL_CONFIG_DIR = Path(__file__).resolve().parents[1] / "model_configs"
 
 def _build_arg_parser() -> argparse.ArgumentParser:

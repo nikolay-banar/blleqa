@@ -9,7 +9,7 @@ from generation.evaluators.refusal import _evaluate_refusals, _is_refusal_output
 from generation.pipeline.bbleqa import _load_gold_ids_by_qid
 from generation.pipeline.bbleqa import _to_id_list
 
-DEFAULT_DATASET_ID = "clips/bLLeQa_aligned"
+DEFAULT_DATASET_ID = "clips/bLLeQA"
 DEFAULT_SPLIT = "test"
 REFUSAL_TABLE_COLUMNS = [
     "Model",

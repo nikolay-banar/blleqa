@@ -10,7 +10,7 @@ from ast import literal_eval
 from datasets import load_dataset
 from transformers import AutoTokenizer
 
-DEFAULT_DATASET_ID = "clips/bLLeQa_aligned"
+DEFAULT_DATASET_ID = "clips/bLLeQA"
 DEFAULT_RETRIEVED_DIR = Path("data/retrieved")
 DEFAULT_OUTPUT_DIR = Path("data/context")
 TOP_K = 100

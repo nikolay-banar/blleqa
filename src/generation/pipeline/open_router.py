@@ -9,7 +9,7 @@ from tqdm.asyncio import tqdm
 
 DEFAULT_OPENROUTER_URL = "https://openrouter.ai/api/v1"
 DEFAULT_REASONING_EFFORT = "medium"
-DEFAULT_DATASET_ID = "clips/bLLeQa_aligned"
+DEFAULT_DATASET_ID = "clips/bLLeQA"
 
 
 class ModelConfig(TypedDict, total=False):

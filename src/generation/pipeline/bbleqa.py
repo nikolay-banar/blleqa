@@ -29,7 +29,7 @@ def _normalize_context_map(value: object) -> dict[str, str]:
 
 def load_blleqa_test_inputs(
     context_file: str,
-    dataset_id: str = "clips/bLLeQa_aligned",
+    dataset_id: str = "clips/bLLeQA",
     split: str = "test",
     lang: str = "nl",
 ) -> list[GenerationInput]:
