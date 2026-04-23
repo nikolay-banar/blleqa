@@ -19,6 +19,7 @@ from generation.cli.evaluate_refusals import (
     _load_refusal_flags_by_qid,
     _print_rows,
     _refusal_case_label,
+    _write_rows_markdown,
 )
 from generation.evaluators import ragas_faithfulness
 from generation.pipeline.blleqa import _load_gold_ids_by_qid, _load_gold_query_ref_by_qid
@@ -321,6 +322,10 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Disable faithfulness cache reuse and force recomputation.",
     )
+    parser.add_argument(
+        "--table-md-file",
+        help="Optional Markdown file path for the final faithfulness summary table.",
+    )
     return parser
 
 
@@ -600,9 +605,11 @@ def main() -> None:
 
     print("All faithfulness rows:")
     _print_rows(ragas_rows, RAGAS_TABLE_COLUMNS)
+    if args.table_md_file:
+        table_md_file = Path(args.table_md_file)
+        _write_rows_markdown(ragas_rows, RAGAS_TABLE_COLUMNS, table_md_file)
+        print(f"Wrote Markdown faithfulness table to {table_md_file}")
 
-    import pandas as pd
-    pd.DataFrame(ragas_rows).to_csv(f"fait_{lang}.csv", index=False)
 
 
 
