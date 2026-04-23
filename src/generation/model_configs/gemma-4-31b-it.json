@@ -1,0 +1,4 @@
+{
+    "name":  "google/gemma-4-31b-it",
+    "providers": ["parasail/bf16", "akashml/bf16"]
+}

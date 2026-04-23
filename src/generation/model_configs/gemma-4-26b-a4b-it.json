@@ -1,0 +1,4 @@
+{
+    "name":  "google/gemma-4-26b-a4b-it",
+    "providers": ["novita/bf16","parasail/bf16"]
+}
