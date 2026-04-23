@@ -12,17 +12,27 @@ Detailed documentation on the dataset and how to reproduce the main experimental
 
 ## Citation
 
-For attribution in academic contexts, please cite this work as:
+If you find bLLeQA useful in your research, please consider citing it, as well as the original LLeQA dataset it is derived from:
 
 ```latex
-@inproceedings{
-    banar2026blleqa,
-    title={b{LL}e{QA}: Benchmarking {LLM}s for Grounded Legal Question-Answering in French and Dutch},
-    author={Nikolay Banar and Ehsan Lotfi and Jens Van Nooten and Marija Kliocaite and Walter Daelemans},
-    booktitle={4th Workshop on Towards Knowledgeable Foundation Models at ACL 2026},
-    year={2026},
-    url={https://openreview.net/forum?id=WBON1oFQ6d}
-    }
+@inproceedings{banar2026blleqa,
+  title={b{LL}e{QA}: Benchmarking {LLM}s for Grounded Legal Question-Answering in French and Dutch},
+  author={Nikolay Banar and Ehsan Lotfi and Jens Van Nooten and Marija Kliocaite and Walter Daelemans},
+  booktitle={4th Workshop on Towards Knowledgeable Foundation Models at ACL 2026},
+  year={2026},
+  url={https://openreview.net/forum?id=WBON1oFQ6d}
+}
+
+@inproceedings{louis2024interpretable,
+  title = {Interpretable Long-Form Legal Question Answering with Retrieval-Augmented Large Language Models},
+  author = {Louis, Antoine and Van Dijck, Gijs and Spanakis, Gerasimos},
+  booktitle = {Proceedings of the 38th AAAI Conference on Artificial Intelligence},
+  year = {2024},
+  address = {Vancouver, Canada},
+  publisher = {AAAI Press},
+  url = {https://arxiv.org/abs/2309.17050},
+  pages = {tba}
+}
 ```
 
 ## License
