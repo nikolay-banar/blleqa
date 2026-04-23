@@ -19,4 +19,9 @@ data/context
 data/retrieved/e5*
 data/retrieved/voyage3_test_fr.json
 
+outpus/gen
+outpus/judge_selection
+outputs/metrics
+outputs/results
+
 *.DS_Store
