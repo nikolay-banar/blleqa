@@ -11,9 +11,6 @@ __pycache__/
 .venv/
 venv/
 
-# Local test outputs
-outputs/
-
 data/annotations
 data/context
 data/retrieved/e5*
