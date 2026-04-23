@@ -14,6 +14,9 @@ venv/
 # Local test outputs
 outputs/
 
-data
+data/annotations
+data/context
+data/retrieved/e5*
+data/retrieved/voyage3_test_fr.json
 
 *.DS_Store
