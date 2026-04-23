@@ -243,6 +243,10 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Disable refusal cache reuse and force recomputation.",
     )
+    parser.add_argument(
+        "--table-md-file",
+        help="Optional Markdown file path for the final refusal summary table.",
+    )
     return parser
 
 
@@ -361,13 +365,12 @@ def _nan_refusal_row(model_name: str, setup_name: str) -> dict[str, object]:
     }
 
 
-def _print_rows(rows: list[dict[str, object]], columns: list[str]) -> None:
+def _format_rows_plain(rows: list[dict[str, object]], columns: list[str]) -> str:
     if not rows:
-        return
+        return ""
     available_columns = [column for column in columns if any(column in row for row in rows)]
     if not available_columns:
-        print("No rows to print.")
-        return
+        return "No rows to print."
 
     def _format_value(value: object) -> str:
         if value is None:
@@ -386,13 +389,48 @@ def _print_rows(rows: list[dict[str, object]], columns: list[str]) -> None:
     }
     header = " ".join(column.ljust(widths[column]) for column in available_columns)
     separator = " ".join("-" * widths[column] for column in available_columns)
-    print(header)
-    print(separator)
+    lines = [header, separator]
     for row in rows:
         line = " ".join(
             _format_value(row.get(column, "")).ljust(widths[column]) for column in available_columns
         )
-        print(line)
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def _format_rows_markdown(rows: list[dict[str, object]], columns: list[str]) -> str:
+    if not rows:
+        return ""
+    available_columns = [column for column in columns if any(column in row for row in rows)]
+    if not available_columns:
+        return "No rows to print."
+
+    def _format_value(value: object) -> str:
+        if value is None:
+            return ""
+        if isinstance(value, float):
+            return f"{value:.4f}".rstrip("0").rstrip(".")
+        return str(value).replace("|", "\\|")
+
+    header = "| " + " | ".join(available_columns) + " |"
+    separator = "| " + " | ".join("---" for _ in available_columns) + " |"
+    lines = [header, separator]
+    for row in rows:
+        line = "| " + " | ".join(_format_value(row.get(column, "")) for column in available_columns) + " |"
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def _print_rows(rows: list[dict[str, object]], columns: list[str]) -> None:
+    formatted = _format_rows_plain(rows, columns)
+    if formatted:
+        print(formatted)
+
+
+def _write_rows_markdown(rows: list[dict[str, object]], columns: list[str], output_file: Path) -> None:
+    formatted = _format_rows_markdown(rows, columns)
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    output_file.write_text(formatted + "\n", encoding="utf-8")
 
 
 def main() -> None:
@@ -504,6 +542,10 @@ def main() -> None:
 
     print("All refusal rows:")
     _print_rows(refusal_rows, REFUSAL_TABLE_COLUMNS)
+    if args.table_md_file:
+        table_md_file = Path(args.table_md_file)
+        _write_rows_markdown(refusal_rows, REFUSAL_TABLE_COLUMNS, table_md_file)
+        print(f"Wrote Markdown refusal table to {table_md_file}")
 
 
 if __name__ == "__main__":
