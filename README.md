@@ -1,190 +1,30 @@
-# bbleqa
 
-Benchmarking utilities for legal QA evaluation.
+# bLLeQA: Benchmarking LLMs for Grounded Legal Question-Answering in French and Dutch
 
-## Build Context
+This repository contains the code for reproducing the experimental results presented in the paper ["bLLeQA: Benchmarking LLMs for Grounded Legal Question-Answering in French and Dutch"]()
 
-`generation.cli.build_context` converts retrieved article ids into per-question context JSON and retrieval metrics.
 
-### CLI
+Retrieval-augmented generation (RAG) systems can play an important role in making law more accessible. However, large and reliable resources for training and benchmarking such systems remain scarce, especially for under-resourced languages like Dutch. To address this gap, and building on previous work (Louis et al., 2024), we introduce bLLeQA, a bilingual parallel question-answering dataset grounded in Belgian legal resources, both in French and Dutch. The dataset contains aligned questions, answers, and supporting articles in both languages, enabling evaluation of both retrieval and end-to-end RAG pipelines. Using bLLeQA, we benchmark the full RAG pipeline in a zero-shot setting, covering retrieval, citation extraction, refusal behavior, and generation quality. Our experiments show that open-weight models are competitive with proprietary models in retrieval and citation extraction, but lag behind in generation quality in the RAG pipeline. Across all models, refusal capability remains weak, meaning that models do not reliably detect when the provided supporting sources are incomplete. In addition, the end-to-end RAG setup still yields a substantial share of flawed responses, reaching 20% even in the best-case scenario.
 
-Preferred (installed entrypoint):
+## Documentation
 
-```bash
-poetry run bbleqa-build-context \
-  --retrieved-file data/retrieved/voyage3_test_nl.json \
-  --lang nl \
-  --split test \
-  --output-dir data/context \
-  --overwrite
+Detailed documentation on the dataset and how to reproduce the main experimental results can be found [here](docs/README.md).
+
+## Citation
+
+For attribution in academic contexts, please cite this work as:
+
+```latex
+@inproceedings{
+    banar2026blleqa,
+    title={b{LL}e{QA}: Benchmarking {LLM}s for Grounded Legal Question-Answering in French and Dutch},
+    author={Nikolay Banar and Ehsan Lotfi and Jens Van Nooten and Marija Kliocaite and Walter Daelemans},
+    booktitle={4th Workshop on Towards Knowledgeable Foundation Models at ACL 2026},
+    year={2026},
+    url={https://openreview.net/forum?id=WBON1oFQ6d}
+    }
 ```
 
-Module fallback:
+## License
 
-```bash
-PYTHONPATH=src python3 -m generation.cli.build_context \
-  --retrieved-file data/retrieved/voyage3_test_nl.json \
-  --lang nl \
-  --split test \
-  --output-dir data/context \
-  --overwrite
-```
-
-Required flag:
-
-- `--retrieved-file`: JSON keyed by question id, where each value is a retrieved article-id list
-  (for example `{ "696": ["3604", "15393", ...] }`)
-
-Useful optional flags:
-
-- `--output-dir` (default: `data/context`)
-- `--dataset-id` (default: `clips/bLLeQa_aligned`)
-- `--split` (default: `test`)
-- `--lang` (`nl` or `fr`, default: `nl`) used to compute retrieval metrics and gold-injection IDs
-- `--overwrite`
-
-Outputs:
-
-- `data/context/<retrieved-file-stem>_metrics.json`
-- `data/context/nl/<retrieved-file-stem>_only_gold.json`
-- `data/context/nl/<retrieved-file-stem>_top_100.json`
-- `data/context/nl/<retrieved-file-stem>_top_100_plus_gold.json`
-- `data/context/fr/<retrieved-file-stem>_only_gold.json`
-- `data/context/fr/<retrieved-file-stem>_top_100.json`
-- `data/context/fr/<retrieved-file-stem>_top_100_plus_gold.json`
-
-Each context output is keyed by question id and contains:
-
-- `[{"id": "<article_id>", "text": "<article_text>"}, ...]`
-
-## Generate
-
-`generation.cli.generate` runs answer generation for the bLLeQa split using a context JSON keyed by question id.
-
-### Requirements
-
-- Python `>=3.11,<3.12`
-- Project dependencies installed (`poetry install`)
-- OpenRouter API key in `OPENROUTER_API_KEY` (or in model config JSON)
-
-### CLI
-
-Preferred (installed entrypoint):
-
-```bash
-poetry run bbleqa-generate \
-  --context-file data/context/nl/voyage3_test_nl_top_100.json \
-  --model ministral-8b \
-  --lang nl
-```
-
-Module fallback:
-
-```bash
-PYTHONPATH=src python3 -m generation.cli.generate \
-  --context-file data/context/nl/voyage3_test_nl_top_100.json \
-  --model ministral-8b \
-  --lang nl
-```
-
-Required flags:
-
-- `--context-file`: JSON file containing context keyed by bLLeQa question id
-- `--model`: model config filename stem from `src/generation/model_configs` (for example `ministral-8b`)
-
-Useful optional flags:
-
-- `--config-dir` (default: `src/generation/model_configs`)
-- `--outputs-dir` (default: `outputs`)
-- `--dataset-id` (default: `clips/bLLeQa_aligned`)
-- `--split` (default: `test`)
-- `--lang` (`nl` or `fr`, default: `nl`)
-- `--max-concurrency` (default: `5`)
-
-### Output
-
-Output is written to:
-
-- `outputs/<lang>/<context-file-stem>/<model>.json`
-
-If that file already exists, completed ids in `answers` are skipped on rerun.
-
-## Judge Selector
-
-`generation.judge_selector` compares multiple judge models on the same calibration JSON using DeepEval correctness, then writes a JSON ranking.
-
-### What It Produces
-
-- `selected_judge_name`
-- `selected_judge_config`
-- `ranking` (all candidates with metrics)
-
-Per-candidate metrics include:
-
-- `coverage`
-- `failure_rate`
-- `num_scored`
-- `num_failed`
-- `mean_score`
-- `score_std`
-- `failed_eval_ids`
-- `failure_reasons`
-- agreement metrics computed from CSV `grade`:
-- `pearson_correlation`
-- `spearman_correlation`
-- `mae`
-- `f1_macro`
-
-### How It Works
-
-1. Load judge configs from JSON files in `src/generation/model_configs`.
-2. Load rows from JSON with fixed keys: `ids,questions,gold_answers,llm_answers,grade`.
-3. Run `deepeval_correctness` for each judge on the same rows.
-   If cached per-model correctness exists in `outputs/judge_selection/<input-file-stem>/<modelname>.json`,
-   only not-yet-evaluated examples are sent for new evaluation.
-4. Save all intermediate per-model correctness outputs to an intermediate JSON file.
-5. Compute ranking metrics only if every model finished with zero failed evaluations.
-6. Save output JSON.
-
-### Requirements
-
-- Python environment with project dependencies installed.
-- OpenRouter API key available via `OPENROUTER_API_KEY` or inside each model config file.
-
-### CLI
-
-Run from project root:
-
-```bash
-PYTHONPATH=src python3 -m generation.judge_selector \
-  --csv-path data/annotations/data-annotations-fr.json \
-  --candidates gemma-3-27b-it \
-  --output-file outputs/judge_selection/judge_selection.json
-```
-
-### Output File
-
-Default output path:
-
-- `outputs/judge_selection/judge_selection.json`
-
-Intermediate output path:
-
-- `outputs/judge_selection/judge_selection_intermediate.json`
-
-Per-model correctness outputs:
-
-- `outputs/judge_selection/<input-file-stem>/<modelname>.json`
-
-### Model Config Files
-
-Each file in `src/generation/model_configs/*.json` defines one judge candidate.
-
-Example:
-
-```json
-{
-  "name": "google/gemma-3-27b-it",
-  "providers": ["novita/bf16"]
-}
-```
+This repository is MIT-licensed.
