@@ -9,7 +9,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-from generation.pipeline.bbleqa import load_blleqa_test_inputs
+from generation.pipeline.blleqa import load_blleqa_test_inputs
 from generation.pipeline.open_router import (
     GenerationResult,
     ModelConfig,

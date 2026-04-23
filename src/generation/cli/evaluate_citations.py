@@ -17,7 +17,7 @@ from generation.cli.evaluate_refusals import (
     run_refusal_evaluation,
 )
 from generation.evaluators.citation_metrics import _evaluate_citations
-from generation.pipeline.bbleqa import _load_gold_ids_by_qid
+from generation.pipeline.blleqa import _load_gold_ids_by_qid
 
 CITATION_TABLE_COLUMNS = [
     "Model",

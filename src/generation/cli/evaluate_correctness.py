@@ -19,7 +19,7 @@ from generation.cli.evaluate_refusals import (
     _refusal_case_label,
 )
 from generation.evaluators import deepeval_correctness
-from generation.pipeline.bbleqa import _load_gold_ids_by_qid, _load_gold_query_ref_by_qid
+from generation.pipeline.blleqa import _load_gold_ids_by_qid, _load_gold_query_ref_by_qid
 
 DEFAULT_JUDGE_MODEL = "gemini-3-flash"
 BINARY_THRESHOLD = 4.0
